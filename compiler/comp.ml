@@ -1,6 +1,7 @@
 open Syntax
 let comp_stmt = function
   | Print (Int i) -> Printf.printf "  printf(\"%%d\\n\",%d);\n" i
+  | Print (String i) -> Printf.printf "  printf(\"%%s\\n\",%S);\n" i
   | Goto i -> Printf.printf "  goto l%d;\n" i
 
 let comp_line (line,stmt) =
