@@ -7,7 +7,8 @@ all:
 tests: all
 	./msxbasc examples/2.bas > a.c && gcc a.c && ./a.out | diff examples/2.txt -
 	./msxbasc examples/1.bas > a.c && gcc a.c && ./a.out | diff examples/1.txt -
-	rm -rf a.c a.out
+	./msxbasc examples/3.bas > a.c && gcc a.c && ./a.out | diff examples/3.txt -
+	rm -rf a.out
 clean:
 	rm -rf parser.ml lexer.ml *.cm* msxbasc a.c a.out
 
