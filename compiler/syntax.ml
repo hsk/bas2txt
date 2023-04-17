@@ -1,10 +1,12 @@
+type binop =
+  | Add | Sub
+  | Lt | Le | Gt | Ge
+[@@deriving show {with_path=false}]
 type expr =
   | Int of int
   | String of string
   | Var of string
-  | Add of expr * expr
-  | Lt of expr * expr
-  | Le of expr * expr
+  | Bin of binop * expr * expr
   [@@deriving show {with_path=false}]
 type stmt =
   | Assign of string * expr

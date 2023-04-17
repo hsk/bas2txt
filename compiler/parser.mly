@@ -3,7 +3,7 @@ open Syntax
 %}
 %token<int> INT
 %token<string> STRING ID
-%token EOF EOL LT LE EQ ADD GOTO IF PRINT
+%token EOF EOL LT LE GT GE EQ ADD SUB GOTO IF PRINT
 %type<Syntax.prog> program
 %start program
 %%
@@ -18,6 +18,9 @@ stmt      : GOTO INT                    { Goto($2) }
 expr      : INT                         { Int $1 }
           | STRING                      { String $1 }
           | ID                          { Var $1 }
-          | expr ADD expr               { Add($1,$3) }
-          | expr LT expr                { Lt($1,$3) }
-          | expr LE expr                { Le($1,$3) }
+          | expr ADD expr               { Bin(Add,$1,$3) }
+          | expr SUB expr               { Bin(Sub,$1,$3) }
+          | expr LT expr                { Bin(Lt,$1,$3) }
+          | expr LE expr                { Bin(Le,$1,$3) }
+          | expr GT expr                { Bin(Gt,$1,$3) }
+          | expr GE expr                { Bin(Ge,$1,$3) }

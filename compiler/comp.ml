@@ -24,19 +24,17 @@ let rec comp_expr = function
   | Int i -> TInt,Printf.sprintf "%d" i
   | Var i -> TInt,Printf.sprintf "%s" i
   | String i -> TString,Printf.sprintf "%S" i
-  | Add(e1,e2) ->
+  | Bin(op,e1,e2) ->
     begin match comp_expr e1, comp_expr e2 with
-    | (TInt,e1),(TInt,e2) -> TInt,Printf.sprintf "(%s+%s)" e1 e2
-    | _ -> failwith "Type Error"
-    end
-  | Lt(e1,e2) ->
-    begin match comp_expr e1, comp_expr e2 with
-    | (TInt,e1),(TInt,e2) -> TInt,Printf.sprintf "(%s<%s)" e1 e2
-    | _ -> failwith "Type Error"
-    end
-  | Le(e1,e2) ->
-    begin match comp_expr e1, comp_expr e2 with
-    | (TInt,e1),(TInt,e2) -> TInt,Printf.sprintf "(%s<=%s)" e1 e2
+    | (TInt,e1),(TInt,e2) ->
+      begin match op with
+      | Add -> TInt,Printf.sprintf "(%s+%s)" e1 e2
+      | Sub -> TInt,Printf.sprintf "(%s-%s)" e1 e2
+      | Lt -> TInt,Printf.sprintf "(%s<%s)" e1 e2
+      | Le -> TInt,Printf.sprintf "(%s<=%s)" e1 e2
+      | Gt -> TInt,Printf.sprintf "(%s>%s)" e1 e2
+      | Ge -> TInt,Printf.sprintf "(%s>=%s)" e1 e2
+      end
     | _ -> failwith "Type Error"
     end
   
@@ -46,8 +44,9 @@ let rec comp_stmt sp = function
     | TInt, i -> Printf.printf "%sprintf(\"%%d\\n\",%s);\n" sp i
     | TString, i -> Printf.printf "%sprintf(\"%%s\\n\",%s);\n" sp i
     end
-  | Assign(x,Add(Var v,Int 1)) when x=v -> Printf.printf "%s%s++;\n" sp x
-  | Assign(x,Add(Int 1,Var v)) when x=v -> Printf.printf "%s++%s;\n" sp x
+  | Assign(x,Bin(Add,Var v,Int 1)) when x=v -> Printf.printf "%s%s++;\n" sp x
+  | Assign(x,Bin(Add,Int 1,Var v)) when x=v -> Printf.printf "%s++%s;\n" sp x
+  | Assign(x,Bin(Sub,Var v,Int 1)) when x=v -> Printf.printf "%s%s--;\n" sp x
   | Assign(x,e) ->
     let _,e = comp_expr e in
     Printf.printf "%s%s = %s;\n" sp x e

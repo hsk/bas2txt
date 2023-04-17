@@ -5,8 +5,11 @@ rule token = parse
 | ['0'-'9']+   as i                                         { Syntax.log "int %s\n" i; INT(int_of_string i) }
 | '"' ([^ '"']+ as s) '"'                                   { Syntax.log "string %s\n" s; STRING s }
 | "+"                                                       { ADD }
+| "-"                                                       { SUB }
 | "<"                                                       { LT }
 | "<="                                                      { LE }
+| ">"                                                       { GT }
+| ">="                                                      { GE }
 | "="                                                       { EQ }
 | ['i''I']['f''F']                                          { IF }
 | ['g''G']['o''O']['t''T']['o''O']                          { GOTO }
