@@ -34,6 +34,11 @@ let rec comp_expr = function
     | (TInt,e1),(TInt,e2) -> TInt,Printf.sprintf "(%s<%s)" e1 e2
     | _ -> failwith "Type Error"
     end
+  | Le(e1,e2) ->
+    begin match comp_expr e1, comp_expr e2 with
+    | (TInt,e1),(TInt,e2) -> TInt,Printf.sprintf "(%s<=%s)" e1 e2
+    | _ -> failwith "Type Error"
+    end
   
 let rec comp_stmt sp = function
   | Print e -> 

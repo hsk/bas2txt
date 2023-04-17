@@ -4,6 +4,7 @@ type expr =
   | Var of string
   | Add of expr * expr
   | Lt of expr * expr
+  | Le of expr * expr
   [@@deriving show {with_path=false}]
 type stmt =
   | Assign of string * expr

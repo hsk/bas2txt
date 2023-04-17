@@ -6,6 +6,7 @@ rule token = parse
 | '"' ([^ '"']+ as s) '"'                                   { Syntax.log "string %s\n" s; STRING s }
 | "+"                                                       { ADD }
 | "<"                                                       { LT }
+| "<="                                                      { LE }
 | "="                                                       { EQ }
 | ['i''I']['f''F']                                          { IF }
 | ['g''G']['o''O']['t''T']['o''O']                          { GOTO }

@@ -3,7 +3,7 @@ open Syntax
 %}
 %token<int> INT
 %token<string> STRING ID
-%token EOF EOL LT EQ ADD GOTO IF PRINT
+%token EOF EOL LT LE EQ ADD GOTO IF PRINT
 %type<Syntax.prog> program
 %start program
 %%
@@ -20,3 +20,4 @@ expr      : INT                         { Int $1 }
           | ID                          { Var $1 }
           | expr ADD expr               { Add($1,$3) }
           | expr LT expr                { Lt($1,$3) }
+          | expr LE expr                { Le($1,$3) }
