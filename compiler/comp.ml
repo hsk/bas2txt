@@ -16,27 +16,48 @@ let rec get_vars = function
 let comp_vars prog =
   let s = prog |> List.fold_left(fun s (_,stmt) -> S.union s (get_vars stmt)) S.empty in
   s |> S.iter (fun x->Printf.printf "  short %s;// kore\n" x)
-
+type t = TInt | TString
+let rec comp_expr = function
+  | Int i -> TInt,Printf.sprintf "%d" i
+  | Var i -> TInt,Printf.sprintf "%s" i
+  | String i -> TString,Printf.sprintf "%S" i
+  | Add(e1,e2) ->
+    begin match comp_expr e1, comp_expr e2 with
+    | (TInt,e1),(TInt,e2) -> TInt,Printf.sprintf "(%s+%s)" e1 e2
+    | _ -> failwith "Type Error"
+    end
+  | Lt(e1,e2) ->
+    begin match comp_expr e1, comp_expr e2 with
+    | (TInt,e1),(TInt,e2) -> TInt,Printf.sprintf "(%s<%s)" e1 e2
+    | _ -> failwith "Type Error"
+    end
+  
 let rec comp_stmt sp = function
-  | Print (Int i) -> Printf.printf "%sprintf(\"%%d\\n\",%d);\n" sp i
-  | Print (String i) -> Printf.printf "%sprintf(\"%%s\\n\",%S);\n" sp i
-  | Assign(x,Add(Var v,Int i)) -> Printf.printf "%s%s = %s + %d;\n" sp x v i
-  | Assign(x,Int i) -> Printf.printf "%s%s = %d;\n" sp x i
+  | Print e -> 
+    begin match comp_expr e with
+    | TInt, i -> Printf.printf "%sprintf(\"%%d\\n\",%s);\n" sp i
+    | TString, i -> Printf.printf "%sprintf(\"%%s\\n\",%s);\n" sp i
+    end
+  | Assign(x,Add(Var v,Int 1)) when x=v -> Printf.printf "%s%s++;\n" sp x
+  | Assign(x,Add(Int 1,Var v)) when x=v -> Printf.printf "%s++%s;\n" sp x
+  | Assign(x,e) ->
+    let _,e = comp_expr e in
+    Printf.printf "%s%s = %s;\n" sp x e
   | Goto i -> Printf.printf "%sgoto l%d;\n" sp i
   | Unit -> Printf.printf "%s;/* Unit */\n" sp
-  | If(Lt(Var v,Int i),s1,Unit) ->
-    Printf.printf "%sif (%s < %d) {\n" sp v i;
-    comp_stmt (sp^"  ") s1;
-    Printf.printf "%s}\n" sp
+  | If(e,s1,s2) ->
+    begin match comp_expr e with
+    | TInt,e ->
+      Printf.printf "%sif (%s) {\n" sp e;
+      comp_stmt (sp^"  ") s1;
+      if s2<>Unit then begin
+        Printf.printf "%s} else {\n" sp;
+        comp_stmt (sp^"  ") s2;
+      end;
+      Printf.printf "%s}\n" sp
+    | _ -> failwith "Type Error"
+    end
 
-  | If(Lt(Var v,Int i),s1,s2) ->
-    Printf.printf "%sif (%s < %d) {\n" sp v i;
-    comp_stmt (sp^"  ") s1;
-    Printf.printf "%s} else {\n" sp;
-    comp_stmt (sp^"  ") s2;
-    Printf.printf "%s}\n" sp
-  | stmt ->
-    Printf.printf "%s/* todo %s */" sp (show_stmt stmt)
 let comp_line (line,stmt) =
   Printf.printf "l%d:;\n" line;
   comp_stmt "  " stmt
