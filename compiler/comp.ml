@@ -14,6 +14,7 @@ let rec prep = function
   | Assign(x,_) -> S.singleton x
   | If(_,s1,s2) -> S.union (prep s1) (prep s2)
   | Goto(i) -> gotos := I.add i (fresh()) !gotos; S.empty
+  | Multi(s1,s2) -> S.union (prep s1) (prep s2)
   | _ -> S.empty
 
 let preprocess prog =
@@ -64,6 +65,7 @@ let rec comp_stmt sp = function
       Printf.printf "%s}\n" sp
     | _ -> failwith "Type Error"
     end
+  | Multi(s1,s2) -> comp_stmt sp s1; comp_stmt sp s2
 
 let comp_line (line,stmt) =
   if I.mem line !gotos then Printf.printf "%s:;\n" (I.find line !gotos);

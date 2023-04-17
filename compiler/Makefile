@@ -13,6 +13,7 @@ tests: all
 	./msxbasc examples/6.bas > a.c && gcc a.c && ./a.out | diff examples/6.txt -
 	./msxbasc examples/6_1.bas > a.c && gcc a.c && ./a.out | diff examples/6.txt -
 	./msxbasc examples/6_2.bas > a.c && gcc a.c && ./a.out | diff examples/6.txt -
+	./msxbasc examples/6_3.bas > a.c && gcc a.c && ./a.out | diff examples/6.txt -
 	rm -rf a.out
 clean:
 	rm -rf parser.ml lexer.ml *.cm* msxbasc a.c a.out
@@ -35,4 +36,7 @@ msx5:
 	openmsx -machine Panasonic_FS-A1ST -diska examples
 msx6:
 	cp examples/6.bas examples/autoexec.bas
+	openmsx -machine Panasonic_FS-A1ST -diska examples
+msx6_3:
+	cp examples/6_3.bas examples/autoexec.bas
 	openmsx -machine Panasonic_FS-A1ST -diska examples

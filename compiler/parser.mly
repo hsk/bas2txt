@@ -3,20 +3,22 @@ open Syntax
 %}
 %token<int> INT
 %token<string> STRING ID
-%token EOF EOL LT LE GT GE EQ ADD SUB GOTO IF PRINT THEN
+%token EOF EOL COLON LT LE GT GE EQ ADD SUB GOTO IF PRINT THEN
 %type<Syntax.prog> program
 %start program
 %%
 program   : lines EOF                   { $1 }
 lines     : line                        { [$1] } 
           | line lines                  { $1::$2 }
-line      : INT stmt EOL                { ($1, $2) }
+line      : INT stmts EOL               { ($1, $2) }
+stmts     : stmt                        { $1 }
+          | stmt COLON stmts            { Multi($1,$3) }
 stmt      : GOTO INT                    { Goto($2) }
           | PRINT expr                  { Print $2 }
           | ID EQ expr                  { Assign($1,$3) }
           | IF expr GOTO INT            { If($2,Goto $4,Unit) }
           | IF expr THEN INT            { If($2,Goto $4,Unit) }
-          | IF expr THEN stmt           { If($2,$4,Unit) }
+          | IF expr THEN stmts          { If($2,$4,Unit) }
 expr      : INT                         { Int $1 }
           | STRING                      { String $1 }
           | ID                          { Var $1 }

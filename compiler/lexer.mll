@@ -4,6 +4,7 @@ rule token = parse
 | ('\n'|"\r\n")+                                            { Syntax.log "eol\n"; EOL }
 | ['0'-'9']+   as i                                         { Syntax.log "int %s\n" i; INT(int_of_string i) }
 | '"' ([^ '"']+ as s) '"'                                   { Syntax.log "string %s\n" s; STRING s }
+| ":"                                                       { COLON }
 | "+"                                                       { ADD }
 | "-"                                                       { SUB }
 | "<"                                                       { LT }
