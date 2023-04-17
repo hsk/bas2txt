@@ -12,8 +12,9 @@ rule token = parse
 | ">"                                                       { GT }
 | ">="                                                      { GE }
 | "="                                                       { EQ }
-| ['i''I']['f''F']                                          { IF }
+| ['e''E']['l''L']['s''S']['e''E']                          { ELSE }
 | ['g''G']['o''O']['t''T']['o''O']                          { GOTO }
+| ['i''I']['f''F']                                          { IF }
 | ['p''P']['r''R']['i''I']['n''N']['t''T']                  { Syntax.log "print\n"; PRINT }
 | ['t''T']['h''H']['e''E']['n''N']                          { THEN }
 | ['A'-'Z''a'-'z']+ as i                                    { ID i }
