@@ -1,11 +1,19 @@
-# simple msx basic compiler
+# Simple MSX BASIC Compiler
 
-syntax
+Syntax
 
 ```
 program   ::= lines
 lines     ::= line | line lines
 line      ::= INT stmt EOL
-stmt      ::= GOTO INT | PRINT expr
-expr      ::= INT | STRING
+stmt      ::= GOTO INT | IF expr GOTO INT | IF expr THEN INT | IF expr THEN stmt
+            | PRINT expr
+            | VAR = expr
+expr      ::= INT | STRING | VAR
+            | expr +  expr
+            | expr -  expr
+            | expr <  expr
+            | expr <= expr
+            | expr >  expr
+            | expr >= expr
 ```
