@@ -14,5 +14,6 @@ rule token = parse
 | ['i''I']['f''F']                                          { IF }
 | ['g''G']['o''O']['t''T']['o''O']                          { GOTO }
 | ['p''P']['r''R']['i''I']['n''N']['t''T']                  { Syntax.log "print\n"; PRINT }
+| ['t''T']['h''H']['e''E']['n''N']                          { THEN }
 | ['A'-'Z''a'-'z']+ as i                                    { ID i }
 | eof                                                       { Syntax.log "eof\n"; EOF }

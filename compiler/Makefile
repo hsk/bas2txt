@@ -11,6 +11,8 @@ tests: all
 	./msxbasc examples/4.bas > a.c && gcc a.c && ./a.out | diff examples/4.txt -
 	./msxbasc examples/5.bas > a.c && gcc a.c && ./a.out | diff examples/5.txt -
 	./msxbasc examples/6.bas > a.c && gcc a.c && ./a.out | diff examples/6.txt -
+	./msxbasc examples/6_1.bas > a.c && gcc a.c && ./a.out | diff examples/6.txt -
+	./msxbasc examples/6_2.bas > a.c && gcc a.c && ./a.out | diff examples/6.txt -
 	rm -rf a.out
 clean:
 	rm -rf parser.ml lexer.ml *.cm* msxbasc a.c a.out

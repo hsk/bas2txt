@@ -3,7 +3,7 @@ open Syntax
 %}
 %token<int> INT
 %token<string> STRING ID
-%token EOF EOL LT LE GT GE EQ ADD SUB GOTO IF PRINT
+%token EOF EOL LT LE GT GE EQ ADD SUB GOTO IF PRINT THEN
 %type<Syntax.prog> program
 %start program
 %%
@@ -15,6 +15,8 @@ stmt      : GOTO INT                    { Goto($2) }
           | PRINT expr                  { Print $2 }
           | ID EQ expr                  { Assign($1,$3) }
           | IF expr GOTO INT            { If($2,Goto $4,Unit) }
+          | IF expr THEN INT            { If($2,Goto $4,Unit) }
+          | IF expr THEN stmt           { If($2,$4,Unit) }
 expr      : INT                         { Int $1 }
           | STRING                      { String $1 }
           | ID                          { Var $1 }
