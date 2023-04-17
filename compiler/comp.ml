@@ -2,20 +2,23 @@ open Syntax
 let id = ref 0
 let fresh () =
   incr id;
-  Printf.sprintf "__%d" !id
+  Printf.sprintf "l%d" !id
 module S = struct
   include Set.Make(String)
   type ts = string list [@@deriving show]
   let show t = show_ts (elements t) 
 end
-let rec get_vars = function
+module I = Map.Make(Int)
+let gotos = ref I.empty
+let rec prep = function
   | Assign(x,_) -> S.singleton x
-  | If(_,s1,s2) -> S.union (get_vars s1) (get_vars s2)
+  | If(_,s1,s2) -> S.union (prep s1) (prep s2)
+  | Goto(i) -> gotos := I.add i (fresh()) !gotos; S.empty
   | _ -> S.empty
 
-let comp_vars prog =
-  let s = prog |> List.fold_left(fun s (_,stmt) -> S.union s (get_vars stmt)) S.empty in
-  s |> S.iter (fun x->Printf.printf "  short %s;// kore\n" x)
+let preprocess prog =
+  let s = prog |> List.fold_left(fun s (_,stmt) -> S.union s (prep stmt)) S.empty in
+  s |> S.iter (fun x->Printf.printf "  short %s;\n" x)
 type t = TInt | TString
 let rec comp_expr = function
   | Int i -> TInt,Printf.sprintf "%d" i
@@ -43,7 +46,7 @@ let rec comp_stmt sp = function
   | Assign(x,e) ->
     let _,e = comp_expr e in
     Printf.printf "%s%s = %s;\n" sp x e
-  | Goto i -> Printf.printf "%sgoto l%d;\n" sp i
+  | Goto i -> Printf.printf "%sgoto %s;\n" sp (I.find i !gotos)
   | Unit -> Printf.printf "%s;/* Unit */\n" sp
   | If(e,s1,s2) ->
     begin match comp_expr e with
@@ -59,14 +62,15 @@ let rec comp_stmt sp = function
     end
 
 let comp_line (line,stmt) =
-  Printf.printf "l%d:;\n" line;
+  if I.mem line !gotos then Printf.printf "%s:;\n" (I.find line !gotos);
   comp_stmt "  " stmt
 
 let compile prog =
   id := 0;
+  gotos := I.empty;
   Printf.printf "#include <stdio.h>\n";
   Printf.printf "int main() {\n";
-  comp_vars prog;
+  preprocess prog;
   List.iter comp_line prog;
   Printf.printf "  return 0;\n";
   Printf.printf "}\n";
