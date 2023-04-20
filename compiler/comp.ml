@@ -12,9 +12,9 @@ module I = Map.Make(Int)
 let gotos = ref I.empty
 let rec prep = function
   | Assign(x,_) -> S.singleton x
-  | If(_,s1,s2) -> S.union (prep s1) (prep s2)
+  | If(_,s1,s2) -> let s1 = prep s1 in S.union s1 (prep s2)
   | Goto(i) -> gotos := I.add i (fresh()) !gotos; S.empty
-  | Multi(s1,s2) -> S.union (prep s1) (prep s2)
+  | Multi(s1,s2) -> let s1 = prep s1 in S.union s1 (prep s2)
   | _ -> S.empty
 
 let preprocess prog =

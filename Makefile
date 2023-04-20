@@ -9,5 +9,8 @@ all:
 	diff b.txt c.txt
 m:
 	openmsx -machine Panasonic_FS-A1ST -diska dsk
+d:
+	./txt2bas dsk/d.bas dsk/e.bas
+	openmsx -machine Panasonic_FS-A1ST -diska dsk
 clean:
 	rm -f b.txt c.txt bas2txt txt2bas

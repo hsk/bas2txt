@@ -163,6 +163,13 @@ int main(int argc, char *argv[]) {
             continue;
           }
           ptr = start;
+        } else
+        if (ligne[ptr] == '\'') {
+          buf[i++]=0x3a;
+          buf[i++]=0x8f;
+          buf[i++]=0xe6;
+          ptr++;
+          continue;     
         }
         buf[i++] = ligne[ptr++];
       }

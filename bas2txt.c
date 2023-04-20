@@ -86,7 +86,7 @@ int main(int argc, const char* argv[]) {
           if (buff[pos] > 0x81) {
             scode = (scode << 8) | buff[pos++];
             if (buff[pos] == 0xe6) {
-            if(dbg) printf("/* 0x3a ' */");
+              if(dbg) printf("/* 0x3a ' scode 0x%x*/",scode);
               pos++;
               printf("'");
             } else {
