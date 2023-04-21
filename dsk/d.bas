@@ -1,4 +1,4 @@
-10 'A=1:A=2:A=3:A=4:A=5:A=6:A=7:A=8:A=9
-15 '
-20 A=10:B=255
-30 A=256:B=32767
+40 goto 50
+50 if A=10 then goto 60 else goto 70
+60 if A=10 then 60 else 70
+70 end

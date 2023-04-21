@@ -3,7 +3,7 @@
  #include <ctype.h>
 typedef struct Rec {
   const char* name;
-  int value;
+  unsigned int value;
 } Rec;
 const Rec wordTable[] = {
     {">",       0xEE  },{"CMD",    0xD7  },{"ERROR",  0xA6  },{"LIST",    0x93  },
@@ -53,17 +53,17 @@ const Rec wordTable[] = {
 unsigned char buf[48 * 1024];
 unsigned char head[] = {255};
 
-Rec* search_keyword(char *str) {
+const Rec* search_keyword(char *str) {
   int i;
   char tmp[256];
   int slen = strlen(str);
   printf("slen=%d\n",slen);
   for(int l=0;l<slen && l < 8;l++) tmp[l]=toupper(str[l]);
   tmp[8]=0;tmp[slen]=0;
-  Rec* rec = wordTable;
+  const Rec* rec = wordTable;
   for (; rec->value; rec++) {
     int len = strlen(rec->name);
-    printf("%d len=%d %s %s\n",i,len,tmp,rec->name);
+    //printf("%d len=%d %s %s\n",i,len,tmp,rec->name);
     if(slen < len) continue;
     if (memcmp(rec->name, tmp, len) == 0) {
       printf("ok=%d\n",i);
@@ -75,19 +75,16 @@ Rec* search_keyword(char *str) {
 }
 
 int main(int argc, char *argv[]) {
-  unsigned int car, number, end, lastptr, adr;
-  int j;
-  FILE *in, *out;
   if (argc != 3) {
     printf("Usage : txt2bas txtfile <Oric-BASIC-file>\n");
     return 1;
   }
-  in = fopen(argv[1], "r");
+  FILE* in = fopen(argv[1], "r");
   if (in == NULL) {
     printf("Can't open input file\n");
     return 1;
   }
-  out = fopen(argv[2], "wb");
+  FILE* out = fopen(argv[2], "wb");
   if (out == NULL) {
     printf("Can't open file for writing\n");
     return 1;
@@ -99,24 +96,28 @@ int main(int argc, char *argv[]) {
     buf[i++] = 0;
     buf[i++] = 0;
     printf("read lineNo\n");
-    if (fscanf(in, "%u", &number) <= 0) break;
-    buf[i++] = number & 0xFF;
-    buf[i++] = number >> 8;
-    j = 0;
-    unsigned char ligne[256];
-    printf("read line datas\n");
-    while ((ligne[j] = getc(in)) != '\n') {
-      j++;
+    {
+      unsigned int number;
+      if (fscanf(in, "%u", &number) <= 0) break;
+      buf[i++] = number & 0xFF;
+      buf[i++] = number >> 8;
     }
-    if(j>0&&ligne[j-1]=='\r')j--;
-    printf("read line datas ok\n");
-    ligne[j] = 0;
-    int ptr = 0;
-    enum {REM=1,STRING,DATA};
-    int mode = 0;
+    char ligne[256];
+    {
+      int j = 0;
+      printf("read line datas\n");
+      while ((ligne[j] = getc(in)) != '\n') {
+        j++;
+      }
+      if(j>0&&ligne[j-1]=='\r')j--;
+      printf("read line datas ok\n");
+      ligne[j] = 0;
+    }
+    enum {REM=1,STRING,DATA,GOTO,THEN};
+    int ptr = 0, mode = 0;
     if (ligne[ptr] == ' ') ptr++;
     while (ligne[ptr]) {
-      switch(mode){
+      switch (mode) {
         case REM: buf[i++] = ligne[ptr++]; continue;
         case STRING:
           if (ligne[ptr] == '"') mode = 0;
@@ -126,53 +127,75 @@ int main(int argc, char *argv[]) {
           if (ligne[ptr] == ':') mode = 0;
           buf[i++] = ligne[ptr++];
           continue;
+        case GOTO:
+        case THEN: {
+          printf("goto mode\n");
+          if (!(ligne[ptr] >= '0' && ligne[ptr] <= '9')) {
+            if (ligne[ptr] != ' ') mode = 0;
+            break;
+          }
+          mode = 0;
+          printf("goto\n");
+          int start=ptr;
+          while(ligne[ptr] >= '0' && ligne[ptr] <= '9') ptr++;
+          unsigned int j;
+          sscanf(&ligne[start],"%d",&j);
+          buf[i++] = 0x0e;
+          buf[i++] = j & 255;
+          buf[i++] = (j >> 8) & 255;
+          continue;
+        }
       }
-      Rec* keyw = search_keyword(ligne + ptr);
+      const Rec* keyw = search_keyword(ligne + ptr);
       printf("value=%x\n",keyw->value);
       if (keyw->value > 0) {
         if (keyw->value == 0x84 || keyw->value == 0xCA) mode = DATA;//or CALL
         else if (keyw->value == 0x8F) mode = REM;
+        else if (keyw->value == 0x89 || keyw->value == 0x8d) mode = GOTO;
+        else if (keyw->value == 0x3aa1 || keyw->value == 0xda) mode = THEN;
+        printf("mode=%d\n",mode);
         if(keyw->value>=0x100) {
           buf[i++] = (keyw->value >> 8) & 0xff;
           buf[i++] = keyw->value & 0xff;
         } else buf[i++] = keyw->value;
         ptr += strlen(keyw->name);
-      } else {
-        if (ligne[ptr] == '\'') mode = REM;
-        else if (ligne[ptr] == '"') mode = STRING;
-        if (ligne[ptr] >= '0' && ligne[ptr] <= '9') {
-          int start=ptr;
-          while(ligne[ptr] >= '0' && ligne[ptr] <= '9') ptr++;
-          unsigned int j;
-          printf("sscanf %d\n",start);
-          sscanf(&ligne[start],"%d",&j);
-          printf("j=%d\n",j);
-          if (j < 10) {
-            buf[i++] = 0x11+j;
-            continue;
-          }
-          if (j < 256) {
-            buf[i++] = 0x0f;
-            buf[i++] = j;
-            continue;
-          }
-          if (j < 32768) {
-            buf[i++] = 0x1c;
-            buf[i++] = j & 255;
-            buf[i++] = (j >> 8) & 255;
-            continue;
-          }
-          ptr = start;
-        } else
-        if (ligne[ptr] == '\'') {
-          buf[i++]=0x3a;
-          buf[i++]=0x8f;
-          buf[i++]=0xe6;
-          ptr++;
-          continue;     
-        }
-        buf[i++] = ligne[ptr++];
+        continue;
       }
+      if (ligne[ptr] == '\'') mode = REM;
+      else if (ligne[ptr] == '"') mode = STRING;
+      if (ligne[ptr] == '\'') {
+        buf[i++]=0x3a;
+        buf[i++]=0x8f;
+        buf[i++]=0xe6;
+        ptr++;
+        continue;     
+      }
+
+      if (ligne[ptr] >= '0' && ligne[ptr] <= '9') {
+        int start=ptr;
+        while(ligne[ptr] >= '0' && ligne[ptr] <= '9') ptr++;
+        unsigned int j;
+        printf("sscanf %d\n",start);
+        sscanf(&ligne[start],"%d",&j);
+        printf("j=%d\n",j);
+        if (j < 10) {
+          buf[i++] = 0x11+j;
+          continue;
+        }
+        if (j < 256) {
+          buf[i++] = 0x0f;
+          buf[i++] = j;
+          continue;
+        }
+        if (j < 32768) {
+          buf[i++] = 0x1c;
+          buf[i++] = j & 255;
+          buf[i++] = (j >> 8) & 255;
+          continue;
+        }
+        ptr = start;
+      }
+      buf[i++] = ligne[ptr++];
     }
     buf[i++] = 0;
     int ofs = i + 0x8001;

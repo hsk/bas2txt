@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 unsigned char* fileread(const char* fpath);
 int hextoi(const char* srcStr);
@@ -145,7 +146,7 @@ int main(int argc, const char* argv[]) {
           break;
         case 0x1c: {  // int num
           if (dbg) printf("/* int 2bytes 0x%02x */",scode);
-          int ivalue = buff[pos] | (buff[pos + 1] << 8); pos += 2;
+          int16_t ivalue = buff[pos] | (buff[pos + 1] << 8); pos += 2;
           printf("%d", ivalue);
           break;
         }
@@ -256,7 +257,7 @@ unsigned char* fileread(const char* fpath) {
   }
   if(dbg)printf("/* fread %p*/\n",buf);
   size_t r = fread(buf, 1, sz, fr);
-  if(dbg)printf("/* fread ok %p %lld*/\n",fr,r);
+  if(dbg)printf("/* fread ok %p %ld*/\n",fr,r);
   fclose(fr);
   if(dbg)printf("/* fclose ok %p */",buf);
   return buf;
